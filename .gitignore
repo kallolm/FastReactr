@@ -1,4 +1,4 @@
 virtual
 /ui/node_modules
 /ui/yarn.lock
-/app/app/__pycache__
+/backend/__pycache__

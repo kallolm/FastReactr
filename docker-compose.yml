@@ -1,20 +1,49 @@
 version: '3.7'
-services: 
-    backend:
-        container_name: backend
-        build: 
-            context: ./backend/
-            dockerfile: Dockerfile
-        ports: 
-            - "8000:8000"
-        restart: always
-    frontend:
-        depends_on: 
-            - backend
-        container_name: frontend
-        build: 
-            context: ./frontend/
-            dockerfile: Dockerfile
-        ports: 
-            - "5000:5000"
-        restart: always
+services:
+  backend:
+    container_name: backend
+    build:
+      context: ./backend/
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    environment:
+      - DB_HOST=db
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+
+    restart: always
+    depends_on:
+      - db
+    volumes:
+      - ./backend:/app
+
+  frontend:
+    depends_on:
+      - backend
+    container_name: frontend
+    build:
+      context: ./frontend/
+      dockerfile: Dockerfile
+    ports:
+      - "5000:5000"
+    restart: always
+
+  db:
+    image: postgres:10.4
+    restart: always
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+    volumes:
+      - ./postgres_db/init.sql:/docker-entrypoint-initdb.d/init.sql
+    command: ["bash", "-c", "chmod 0700 /var/lib/postgresql/data && docker-entrypoint.sh postgres"]
+    ports:
+      - 5432:5432
+    healthcheck:
+      test: ["CMD", "pg_isready", "-q", "-d", "${POSTGRES_DB}", "-U", "postgres"]
+      timeout: 45s
+      interval: 10s
+      retries: 10

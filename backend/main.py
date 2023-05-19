@@ -1,9 +1,8 @@
 import uvicorn
 from fastapi import FastAPI
 from typing import List
-from pydantic import BaseModel
 from fastapi.middleware.cors import CORSMiddleware
-
+from UserManager import UserDataHandler,User
 app = FastAPI()
 
 
@@ -18,17 +17,11 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-class User(BaseModel):
-    name: str
-    email: str
-    password: str
 
 @app.post("/api/users")
 def create_user(user: User):
-    print(user)
-    # Process the user data, e.g., save it to a database
-    # You can add your own logic here
-    # For demonstration purposes, we'll just return the user data
+    user_handler =UserDataHandler()
+    user_handler.add_user(user)
     return f"Successfully created user {user.name}"
 
 if __name__ == "__main__":
